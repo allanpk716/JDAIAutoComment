@@ -1,20 +1,21 @@
 // ==UserScript==
 // @name         京东自动评价（大模型版·全自动闭环）
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/charmingYouYou/JDAIAutoComment
 // @version      8.0
 // @description  一个「开始/暂停」按钮控制的全自动评价闭环：评价→自动配图（抓商品晒单图随机上传）→发表→返回列表→进入下一单，循环至列表清空。开始=从当前步骤继续；暂停=当前步骤完成后停止。支持接入各类大模型（DeepSeek/OpenAI/GLM等）。
 // @author       oscar (Modified)
+// @license      MIT
+// @homepageURL  https://github.com/charmingYouYou/JDAIAutoComment
+// @supportURL   https://github.com/charmingYouYou/JDAIAutoComment/issues
 // @match        https://club.jd.com/myJdcomments/orderVoucher*
 // @match        https://club.jd.com/myJdcomments/saveCommentSuccess*
 // @match        https://club.jd.com/myJdcomments/myJdcomment.action*
-// @require      http://libs.baidu.com/jquery/1.11.1/jquery.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // @grant        GM_xmlhttpRequest
 // @connect      club.jd.com
 // @connect      360buyimg.com
 // @connect      img30.360buyimg.com
 // @connect      storage.360buyimg.com
-// @downloadURL https://update.greasyfork.org/scripts/570776/%E4%BA%AC%E4%B8%9C%E8%87%AA%E5%8A%A8%E8%AF%84%E4%BB%B7%EF%BC%88%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%89%88%EF%BC%89.user.js
-// @updateURL https://update.greasyfork.org/scripts/570776/%E4%BA%AC%E4%B8%9C%E8%87%AA%E5%8A%A8%E8%AF%84%E4%BB%B7%EF%BC%88%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%89%88%EF%BC%89.meta.js
 // ==/UserScript==
 
 (function() {
