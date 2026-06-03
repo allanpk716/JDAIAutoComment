@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         京东自动评价（大模型版·全自动闭环）
 // @namespace    https://github.com/charmingYouYou/JDAIAutoComment
-// @version      8.1
+// @version      8.2
 // @description  一个「开始/暂停」按钮控制的全自动评价闭环：评价→自动配图（抓商品晒单图随机上传）→发表→返回列表→进入下一单，循环至列表清空。开始=从当前步骤继续；暂停=当前步骤完成后停止。支持接入各类大模型（DeepSeek/OpenAI/GLM等）。
 // @author       charmingYouYou
 // @license      MIT
@@ -270,6 +270,38 @@
         });
     }
 
+    // 把任意格式的图片 Blob 重新编码成真 JPEG File。
+    // 必要性：360buyimg CDN 对 .jpg 晒单图常按内容协商返回 webp 字节，京东上传按 magic bytes
+    // 校验会判定非 jpg/png/gif/bmp 而拒收。经 canvas 重编码可保证为真 JPEG，并顺带限制尺寸 (<4M)。
+    // 关键：blob 经 blob: URL 加载到 Image 属同源，不会污染 canvas，toBlob 可正常导出。
+    function blobToJpegFile(blob, name) {
+        return new Promise(function(resolve, reject) {
+            const objUrl = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = function() {
+                URL.revokeObjectURL(objUrl);
+                let w = img.naturalWidth, h = img.naturalHeight;
+                if (!w || !h) { reject('图片尺寸为 0'); return; }
+                const MAX = 1920; // 限制最长边，保证 JPEG 体积远小于 4M
+                if (Math.max(w, h) > MAX) {
+                    const s = MAX / Math.max(w, h);
+                    w = Math.round(w * s); h = Math.round(h * s);
+                }
+                const cv = document.createElement('canvas');
+                cv.width = w; cv.height = h;
+                const ctx = cv.getContext('2d');
+                ctx.fillStyle = '#ffffff'; // 白底，避免透明图转 jpg 出现黑块
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                cv.toBlob(function(jpg) {
+                    jpg ? resolve(new File([jpg], name, { type: 'image/jpeg' })) : reject('toBlob 失败');
+                }, 'image/jpeg', 0.85);
+            };
+            img.onerror = function() { URL.revokeObjectURL(objUrl); reject('图片解码失败'); };
+            img.src = objUrl;
+        });
+    }
+
     // 把若干 File 注入到指定 file input 并触发 plupload 上传
     function injectFiles(input, files) {
         const dt = new DataTransfer();
@@ -319,11 +351,9 @@
             const tasks = picks.map(function(u, i) {
                 let url = u.indexOf('//') === 0 ? 'https:' + u : u;
                 url = url.replace(/\.dpg(\?|$)/, '$1'); // 去 .dpg 保险（接口一般已是 .jpg）
-                return fetchImageBlob(url).then(function(blob) {
-                    const type = (blob && blob.type) ? blob.type : 'image/jpeg';
-                    const ext = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
-                    return new File([blob], 'shaidan_' + p.sku + '_' + i + '.' + ext, { type: type });
-                }).catch(function() { return null; });
+                return fetchImageBlob(url)
+                    .then(function(blob) { return blobToJpegFile(blob, 'shaidan_' + p.sku + '_' + i + '.jpg'); })
+                    .catch(function() { return null; });
             });
             return Promise.all(tasks).then(function(files) {
                 files = files.filter(Boolean);
