@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# 本地私有副本（如填好密钥的本地版本，避免误提交密钥）
+*.local.user.js
+secrets.*
