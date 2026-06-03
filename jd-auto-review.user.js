@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         京东自动评价（大模型版·全自动闭环）
 // @namespace    https://github.com/charmingYouYou/JDAIAutoComment
-// @version      8.3
+// @version      8.4
 // @description  一个「开始/暂停」按钮控制的全自动评价闭环：评价→自动配图（抓商品晒单图随机上传）→发表→返回列表→进入下一单，循环至列表清空。开始=从当前步骤继续；暂停=当前步骤完成后停止。支持接入各类大模型（DeepSeek/OpenAI/GLM等）。
 // @author       charmingYouYou
 // @license      MIT
@@ -449,19 +449,10 @@
                 }, 1500);
             },
             function(errMsg) {
-                updateStatus(`第 ${index + 1} 个失败: ${errMsg}，已填入兜底评价。`, 'red');
-                let backupReview = "这款商品的质量非常不错，材质很好，做工精细，实际使用体验远超预期，非常满意的一次购物！";
-
-                let $currentTarget = $textareas.eq(index);
-                $currentTarget.val(backupReview);
-                if ($currentTarget.length > 0) {
-                    $currentTarget[0].dispatchEvent(new Event('input', { bubbles: true }));
-                    $currentTarget[0].dispatchEvent(new Event('change', { bubbles: true }));
-                }
-
-                setTimeout(function() {
-                    processNextItem(index + 1);
-                }, 1500);
+                // AI 生成失败：不兜底，直接暂停并说明原因。点「开始」从当前商品重试。
+                setRunning(false);
+                resumeAction = function() { processNextItem(index); };
+                updateStatus(`❌ 第 ${index + 1} 个商品评价生成失败：${errMsg}。已暂停，排查后点「开始」重试。`, 'red');
             }
         );
     }
