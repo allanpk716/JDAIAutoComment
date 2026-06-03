@@ -10,7 +10,7 @@
 // @match        https://club.jd.com/myJdcomments/orderVoucher*
 // @match        https://club.jd.com/myJdcomments/saveCommentSuccess*
 // @match        https://club.jd.com/myJdcomments/myJdcomment.action*
-// @require      https://lib.baomitu.com/jquery/1.11.1/jquery.min.js
+// @require      http://libs.baidu.com/jquery/1.11.1/jquery.min.js
 // @grant        GM_xmlhttpRequest
 // @connect      club.jd.com
 // @connect      360buyimg.com
