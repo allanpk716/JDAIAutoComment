@@ -191,7 +191,15 @@
             const $el = getEl();
             if ($el && $el.length > 0) {
                 updateStatus(`${label}：已自动点击 ✅`, 'green');
-                $el[0].click();
+                // 单标签页导航：点击前中和 target="_blank"，并接管 window.open 兜底程序化开新页。
+                // 中和失败则退回普通点击，最坏情况等同现状（开新标签页），不会更差。
+                try {
+                    forceSameTabNav($el[0]);
+                    withOpenGuard(function() { $el[0].click(); });
+                } catch (e) {
+                    updateStatus('单标签导航中和失败，退回普通点击：' + e, 'red');
+                    $el[0].click();
+                }
             } else {
                 updateStatus(`${label}：未找到目标元素，流程已停止。`, 'red');
                 if (onNotFound) onNotFound();
